@@ -40,7 +40,7 @@
 					'null' => true,
 				];
 				$cols['meta-' . $lc] = [
-					'type' => 'varchar(255)',
+					'type' => 'text',
 					'null' => true,
 				];
 			}
@@ -80,7 +80,7 @@
 						'null' => true,
 					],
 					'meta' => [
-						'type' => 'varchar(255)',
+						'type' => 'text',
 						'null' => true,
 					],
 				], self::generateTableColumns()))
@@ -209,6 +209,7 @@
 
 			$this->set('required_languages', $required_languages);
 
+
 			if (!parent::commit()) {
 				return false;
 			}
@@ -254,9 +255,7 @@
 			$optional = '';
 			$required = in_array('all', $required_languages) || count($langs) == count($required_languages);
 			if (!$required) {
-				if (empty($required_languages)) {
-					$optional .= __('All languages are optional');
-				} else {
+				if (!empty($required_languages)) {
 					$optional_langs = array();
 					foreach ($langs as $lang) {
 						if (!in_array($lang, $required_languages)) {
@@ -309,22 +308,31 @@
 			foreach ($langs as $lc) {
 				$div = new XMLElement('div', null, array('class' => 'file tab-panel tab-'.$lc));
 				$file = 'file-'.$lc;
+				$filename = null;
+				$meta = unserialize($data['meta-' . $lc]);
 
-				if ($data[$file]) {
-					$filePath = $this->get('destination').'/'.$data[$file];
+				unset($meta['creation']);
+				unset($meta['width']);
+				unset($meta['height']);
 
-					$div->appendChild(
-						Widget::Anchor($filePath, URL.$filePath)
-					);
+				if (empty($meta)) {
+					$meta = '{}';
+				} else {
+					$meta = json_encode($meta);
 				}
 
-				$div->appendChild(
-					Widget::Input(
-						"fields{$fieldnamePrefix}[{$this->get('element_name')}][{$lc}]{$fieldnamePostfix}",
-						$data[$file],
-						$data[$file] ? 'hidden' : 'file'
-					)
-				);
+				if ($data[$file]) {
+					$filename = $this->get('destination') . '/' . $data[$file];
+				}
+
+				$div->appendChild(Widget::Input('fields' . $fieldnamePrefix . '[' . $this->get('element_name') . '][' . $lc . '][image]' . $fieldnamePostfix, $filename, ($filename ? 'hidden' : 'file'), array('class' => 'image-upload-input')));
+				$div->appendChild(Widget::Input('fields' . $fieldnamePrefix . '[' . $this->get('element_name') . '][' . $lc . '][meta]' . $fieldnamePostfix, $meta, 'hidden', array('class' => 'image-upload-meta')));
+				
+				$div->appendChild(new XMLElement('button', __('Remove'), array('class' => 'image-upload-remove')));
+				$div->setAttribute('data-editor', ($this->get('editor') === 'yes' && !self::isSvg($data['mimetype'])) ? 'yes' : 'no');
+				$div->setAttribute('data-viewport-width', $this->get('viewport_width'));
+				$div->setAttribute('data-viewport-height', $this->get('viewport_height'));
+				$div->setAttribute('id', $this->get('element_name') . '-' . $lc);
 
 				$container->appendChild($div);
 			}
@@ -368,9 +376,8 @@
 				$this->set('required', in_array($lc, $required_languages) ? 'yes' : 'no');
 
 				$file_message = '';
-				$data = $this->_getData($field_data[$lc]);
 
-				$status = parent::checkPostFieldData($data, $file_message, $entry_id);
+				$status = parent::checkPostFieldData($data[$lc], $file_message, $entry_id);
 
 				// if one language fails, all fail
 				if ($status != self::__OK__) {
@@ -412,8 +419,6 @@
 					continue;
 				}
 
-				$data = $this->_getData($field_data[$lc]);
-
 				// Make this language the default for now
 				// parent::processRawFieldData needs this.
 				if ($entry_id) {
@@ -432,7 +437,8 @@
 
 				$local_status = self::__OK__;
 				$local_messsage = '';
-				$file_result = parent::processRawFieldData($data, $local_status, $local_messsage, $simulate, $entry_id);
+				$file_result = parent::processRawFieldData($field_data[$lc], $local_status, $local_messsage, $simulate, $entry_id);
+
 				if ($local_status != self::__OK__) {
 					$message .= $local_messsage;
 					$status = $local_status;
@@ -624,35 +630,6 @@
 				}
 				return substr($matches[1], 0, 150) . '-' . $lang_code . $matches[2];
 			}, $filename);
-		}
-
-
-		/**
-		 * It is possible that data from Symphony won't come as expected associative array.
-		 *
-		 * @param array $data
-		 */
-		private function _getData($data)
-		{
-			if (is_string($data)) {
-				return $data;
-			}
-
-			if (!is_array($data)) {
-				return null;
-			}
-
-			if (array_key_exists('name', $data)) {
-				return $data;
-			}
-
-			return array(
-				'name' => $data[0],
-				'type' => $data[1],
-				'tmp_name' => $data[2],
-				'error' => $data[3],
-				'size' => $data[4]
-			);
 		}
 
 

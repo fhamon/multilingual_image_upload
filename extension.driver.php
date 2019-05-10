@@ -49,10 +49,17 @@
 					'min_height' => 'int(11)',
 					'max_width' => 'int(11)',
 					'max_height' => 'int(11)',
+					'viewport_width' => 'int(11)',
+					'viewport_height' => 'int(11)',
 					'resize' => [
 						'type' => 'enum',
 						'values' => ['yes','no'],
 						'default' => 'yes',
+					],
+					'editor' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'no'
 					],
 				])
 				->keys([
@@ -337,11 +344,9 @@
 
 				$page = Administration::instance()->Page;
 
-
 				if ($type === self::PUBLISH_HEADERS) {
-					$page->addScriptToHead(URL.'/extensions/'.MIU_GROUP.'/assets/'.MIU_GROUP.'.publish.js', null, false);
+					$page->addStylesheetToHead(URL.'/extensions/'.MIU_GROUP.'/assets/'.MIU_GROUP.'.publish.css');
 				}
-
 
 				if ($type === self::SETTINGS_HEADERS) {
 					$page->addScriptToHead(URL.'/extensions/'.MIU_GROUP.'/assets/'.MIU_GROUP.'.settings.js', null, false);
