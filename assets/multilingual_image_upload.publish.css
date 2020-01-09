@@ -1,4 +1,8 @@
-.field-multilingual_image_upload .image-upload-editor {
+.field-multilingual_image_upload .image-upload-ctn {
 	margin-top: 0;
 	position: relative;
+}
+
+.field-multilingual_image_upload.field-multilingual .tabs {
+	margin: 0 1rem -1px 0
 }

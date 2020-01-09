@@ -311,6 +311,8 @@
 				$filename = null;
 				$meta = unserialize($data['meta-' . $lc]);
 
+				$imgCtn = new XMLElement('div', null, array('class' => 'image-upload-ctn'));
+
 				unset($meta['creation']);
 				unset($meta['width']);
 				unset($meta['height']);
@@ -325,14 +327,16 @@
 					$filename = $this->get('destination') . '/' . $data[$file];
 				}
 
-				$div->appendChild(Widget::Input('fields' . $fieldnamePrefix . '[' . $this->get('element_name') . '][' . $lc . '][image]' . $fieldnamePostfix, $filename, ($filename ? 'hidden' : 'file'), array('class' => 'image-upload-input')));
-				$div->appendChild(Widget::Input('fields' . $fieldnamePrefix . '[' . $this->get('element_name') . '][' . $lc . '][meta]' . $fieldnamePostfix, $meta, 'hidden', array('class' => 'image-upload-meta')));
+				$imgCtn->appendChild(Widget::Input('fields' . $fieldnamePrefix . '[' . $this->get('element_name') . '][' . $lc . '][image]' . $fieldnamePostfix, $filename, ($filename ? 'hidden' : 'file'), array('class' => 'image-upload-input')));
+				$imgCtn->appendChild(Widget::Input('fields' . $fieldnamePrefix . '[' . $this->get('element_name') . '][' . $lc . '][meta]' . $fieldnamePostfix, $meta, 'hidden', array('class' => 'image-upload-meta')));
 				
-				$div->appendChild(new XMLElement('button', __('Remove'), array('class' => 'image-upload-remove')));
+				$imgCtn->appendChild(new XMLElement('em', __('Remove'), array('class' => 'image-upload-remove')));
 				$div->setAttribute('data-editor', ($this->get('editor') === 'yes' && !self::isSvg($data['mimetype'])) ? 'yes' : 'no');
 				$div->setAttribute('data-viewport-width', $this->get('viewport_width'));
 				$div->setAttribute('data-viewport-height', $this->get('viewport_height'));
 				$div->setAttribute('id', $this->get('element_name') . '-' . $lc);
+
+				$div->appendChild($imgCtn);
 
 				$container->appendChild($div);
 			}
